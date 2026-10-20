@@ -3,7 +3,7 @@ import { Navigate, useSearchParams } from "react-router-dom";
 import { homeFor, safeNext, scopeOf, seesLines, useAuth, type Account } from "../auth";
 import { sectorTrades, useData } from "../data";
 import { useT } from "../i18n";
-import { Glyph, ROLE_ICON } from "../ui/Icons";
+import { Decal, Glyph, ROLE_ICON } from "../ui/Icons";
 import { Button } from "../ui/parts";
 import { TNMap } from "../ui/TNMap";
 
@@ -50,6 +50,7 @@ export default function Login() {
         <p className="lede">{t("Use the user ID and password from your department. Pramaan opens on the state, district or field you look after.")}</p>
         {notice ? <p className="notice" role="status"><Glyph name="bell" tone={{ ink: "#B86E12", tile: "transparent" }} />{notice}</p> : null}
         <form className="panel login-form" onSubmit={submit} noValidate>
+          <Decal name="lock" />
           <label className="field">
             <span>{t("User ID")}</span>
             <input value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" autoCapitalize="none" spellCheck={false} placeholder={t("For example, cbe.officer")} />

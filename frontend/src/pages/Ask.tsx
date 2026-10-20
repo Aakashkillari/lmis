@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { scopeOf, useAuth, type Scope } from "../auth";
 import { useData, usePick, type Data } from "../data";
 import { t, useLang, useT } from "../i18n";
-import { NAV_ICONS } from "../ui/Icons";
+import { Decal, NAV_ICONS } from "../ui/Icons";
 import { Button } from "../ui/parts";
 
 type Turn = { role: "user" | "assistant"; content: string };
@@ -126,6 +126,7 @@ export default function Ask() {
         </section>
 
         <aside className="panel">
+          <Decal name="ask" />
           <div className="panel-head"><h2 className="h2">{t("Try asking")}</h2></div>
           <div className="suggest">
             {suggestions.map((s) => <button key={s} onClick={() => ask(s)} disabled={busy}>{s}</button>)}

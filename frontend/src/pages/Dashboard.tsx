@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { scopeOf, useAuth } from "../auth";
 import { BAND_WORDS, SECTORS, STATUS, districtTotals, fmt, monthName, perTen, sectorTrades, statusOf, useData, usePick, type SectorKey } from "../data";
 import { tn, useT } from "../i18n";
-import { TRADE_ICONS } from "../ui/Icons";
+import { Decal, TRADE_ICONS } from "../ui/Icons";
 import { Button, Download, JobsStrip, Mark, Spark, StripCaption, TradeIcon } from "../ui/parts";
 import { TNMap } from "../ui/TNMap";
 
@@ -102,6 +102,7 @@ export default function Dashboard() {
         </section>
 
         <section className="panel" data-reveal>
+          <Decal name="pin" />
           <div className="panel-head">
             <div>
               <h2 className="h1" style={{ fontSize: 30 }}>{t(district.name)}</h2>
@@ -170,6 +171,7 @@ export default function Dashboard() {
 
       <div className="three">
         <section className="plate" data-reveal>
+          <Decal name="down" />
           <h2 className="h3" style={{ marginBottom: 8 }}>{t("Needs more trainees")}</h2>
           {needed.map(({ d, k, p }) => (
             <div key={`${d}-${k}`} className="li" role="button" tabIndex={0} onClick={() => open(d, k)}>
@@ -180,6 +182,7 @@ export default function Dashboard() {
           ))}
         </section>
         <section className="plate" data-reveal>
+          <Decal name="up" />
           <h2 className="h3" style={{ marginBottom: 8 }}>{t("Too many trainees")}</h2>
           {crowded.map(({ d, k, p }) => (
             <div key={`${d}-${k}`} className="li" role="button" tabIndex={0} onClick={() => open(d, k)}>
@@ -190,6 +193,7 @@ export default function Dashboard() {
           ))}
         </section>
         <section className="plate" data-reveal>
+          <Decal name="bell" />
           <div className="row" style={{ justifyContent: "space-between", marginBottom: 8 }}>
             <h2 className="h3">{t("Changing soon")}</h2>
             <Download href={`/api/export/warnings.csv?${query}`}>{t("Download")}</Download>

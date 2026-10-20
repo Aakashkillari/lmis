@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { scopeName, scopeOf, useAuth } from "../auth";
 import { STATUS, fmt, monthName, perTen, statusOf, useData, usePick, type Move } from "../data";
 import { msg, tn, useLang, useT } from "../i18n";
-import { Glyph, MISC } from "../ui/Icons";
+import { Decal, Glyph, MISC } from "../ui/Icons";
 import { Button, Download, Mark, TradeIcon } from "../ui/parts";
 
 const LEVEL = [msg("far too few"), msg("a bit too few"), msg("about right"), msg("a bit too many"), msg("far too many")];
@@ -130,6 +130,7 @@ export default function Plan() {
       </section>
 
       <section className="panel" data-reveal>
+        <Decal name="plan" />
         <div className="impact">
           <div>
             <p className="label" style={{ margin: 0 }}>{t("If you make the moves below")}</p>

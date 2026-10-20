@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { PILOT_STATES, homeFor, useAuth, usePlace } from "../auth";
 import { STATUS, fmt, perTen, sectorTrades, statusOf, useData, useNational, usePick } from "../data";
 import { msg, useT } from "../i18n";
-import { Glyph } from "../ui/Icons";
+import { Decal, Glyph } from "../ui/Icons";
 import { Button, JobsStrip, Mark, TradeIcon } from "../ui/parts";
 import { scrollToSection } from "../ui/Shell";
 import { TNMap } from "../ui/TNMap";
@@ -120,6 +120,7 @@ export default function Landing() {
             const ratio = s.trainees / s.jobs;
             return (
               <article key={s.name} className="panel pilot" data-reveal>
+                <Decal name="map" />
                 <div className="panel-head">
                   <div><h3 className="h2">{t(s.name)}</h3><p>{t("{count} districts, data to {month}", { count: s.districts, month: s.updated })}</p></div>
                   <Mark status={statusOf(ratio)} boxed />

@@ -60,3 +60,13 @@ export const ROLE_ICON: Record<string, string> = { national: "explore", state: "
 export function StatusGlyph({ status }: { status: number }) {
   return <Glyph name={status <= 1 ? "down" : status >= 3 ? "up" : "equal"} />;
 }
+
+/** A large, faint outline of an icon that sits behind a card's content as a decal. */
+export function Decal({ name }: { name: string }) {
+  const paths = GLYPHS[name] ?? GLYPHS.question;
+  return (
+    <svg className="decal-glyph" viewBox="0 0 32 32" aria-hidden="true">
+      {paths.map((d, i) => <path key={i} d={d} />)}
+    </svg>
+  );
+}

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { STATUS, fmt, monthName, perTen, statusOf, useData, usePick } from "../data";
 import { tn, useT } from "../i18n";
-import { TRADE_ICONS } from "../ui/Icons";
+import { Decal, TRADE_ICONS } from "../ui/Icons";
 import { Button, Download, JobsStrip, Mark, StripCaption } from "../ui/parts";
 import { ForecastChart } from "../ui/ForecastChart";
 
@@ -74,6 +74,7 @@ export default function Explore() {
         </section>
 
         <section className="panel" data-reveal>
+          <Decal name="sliders" />
           <div className="panel-head"><div><h2 className="h2">{t("Try a change")}</h2><p>{t("Move the sliders to see what happens before you decide.")}</p></div>
             <Button kind="quiet" icon="reset" onClick={() => { setSeats(pair.seats); setPass(Math.round(pair.completion * pair.certification * 100)); }}>{t("Reset")}</Button></div>
           <div className="stack" style={{ gap: 14 }}>

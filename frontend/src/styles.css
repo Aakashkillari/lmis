@@ -689,3 +689,46 @@ html:lang(ta) .nav, html:lang(kn) .nav { gap: 0; }
 @media (max-width: 1280px) {
   html:lang(ta) .nav a span, html:lang(kn) .nav a span { font-size: 12.5px; }
 }
+
+/* ---------- cards: a lighter surface with a layer behind the content ----------
+   The sheet shows faintly through each card. Behind the content (z-index -1 inside the card)
+   sit a ledger grid that fades out from the top-right corner, print-proof corner marks,
+   and on the main cards a large faint icon. Content always stays on top. */
+.panel, .plate, .swap, .how, .ledger, .source, .acc-state, .roles, .flow { position: relative; isolation: isolate; }
+.panel, .swap, .how, .ledger, .source, .acc-state, .roles, .flow { background: rgba(255, 255, 255, 0.78); }
+.plate { background: rgba(255, 255, 255, 0.4); }
+.panel .ledger { background: rgba(255, 255, 255, 0.6); }
+.panel::before, .plate::before, .swap::before, .how::before, .ledger::before, .source::before, .acc-state::before, .roles::before, .flow::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: -1; pointer-events: none;
+  background-image: linear-gradient(rgba(18, 22, 31, 0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(18, 22, 31, 0.055) 1px, transparent 1px);
+  background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(120% 110% at 100% 0%, #000 0%, transparent 48%);
+  mask-image: radial-gradient(120% 110% at 100% 0%, #000 0%, transparent 48%);
+}
+.panel::after, .plate::after, .swap::after, .how::after, .source::after, .acc-state::after {
+  content: ""; position: absolute; inset: 9px; z-index: -1; pointer-events: none; opacity: 0.22;
+  background:
+    linear-gradient(var(--ink), var(--ink)) top left / 9px 1.5px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) top left / 1.5px 9px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) bottom right / 9px 1.5px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) bottom right / 1.5px 9px no-repeat;
+}
+.decal-glyph { position: absolute; right: 18px; bottom: 18px; width: 132px; height: 132px; z-index: -1; pointer-events: none; fill: none; stroke: var(--ink); stroke-width: 0.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0.06; }
+.plate .decal-glyph { width: 96px; height: 96px; right: 14px; bottom: 14px; opacity: 0.07; }
+.state-card .decal-glyph, .pilot .decal-glyph { width: 168px; height: 168px; right: 16px; bottom: 16px; }
+
+/* India: plain-words grid and the ranked list */
+.plain-key { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: -4px 0 14px; }
+.plain-key span { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; color: var(--ink-2); }
+.plain-key i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.matrix.compare .cell.verdict { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 8px 6px; }
+.cell.verdict b { font-size: 14px; font-weight: 600; }
+.cell.verdict small { font-size: 12px; font-weight: 500; opacity: 0.85; }
+.rank button { grid-template-columns: 36px 30px minmax(0, 1fr) minmax(100px, 220px) 150px; }
+.rank-bar { height: 10px; border-radius: 10px; background: var(--line-2); overflow: hidden; }
+.rank-bar i { display: block; height: 100%; border-radius: 10px; }
+.rank-gap small { white-space: nowrap; }
+@media (max-width: 1100px) {
+  .rank button { grid-template-columns: 32px 30px minmax(0, 1fr) 120px; }
+  .rank-bar { display: none; }
+}

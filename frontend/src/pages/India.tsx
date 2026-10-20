@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { usePlace, useUser } from "../auth";
 import { SECTORS, STATUS, fmt, perTen, statusOf, useNational, usePick, type National, type SectorKey } from "../data";
 import { tn, useT } from "../i18n";
-import { TRADE_ICONS } from "../ui/Icons";
+import { Decal, TRADE_ICONS } from "../ui/Icons";
 import { Button, Download, JobsStrip, Loader, Mark, TradeIcon } from "../ui/parts";
 
 type Pair = National["pairs"][number];
@@ -33,6 +33,7 @@ export default function India() {
   const ranked = [...pairs].sort((a, b) => side === "short" ? (b.jobs - b.trainees) - (a.jobs - a.trainees) : (b.trainees - b.jobs) - (a.trainees - a.jobs))
     .filter((p) => (side === "short" ? p.jobs > p.trainees : p.trainees > p.jobs));
   const shown = showAll ? ranked : ranked.slice(0, 10);
+  const topGap = ranked.length ? Math.abs(ranked[0].jobs - ranked[0].trainees) : 1;
 
   /* Opening a pair in another state: remember the pick for that state, then switch to it. */
   const openState = (state: string) => { setPlace(state); go("/dashboard"); };
@@ -93,6 +94,7 @@ export default function India() {
           const short = worst(s.name, "short"), many = worst(s.name, "many");
           return (
             <article key={s.name} className="panel state-card" data-reveal>
+              <Decal name="map" />
               <div className="panel-head">
                 <div><h2 className="h1" style={{ fontSize: 30 }}>{t(s.name)}</h2><p>{t("{count} pilot districts, data to {month}", { count: s.districts, month: s.updated })}</p></div>
                 <Mark status={statusOf(ratio)} boxed />
@@ -128,12 +130,17 @@ export default function India() {
 
       <section className="panel" data-reveal>
         <div className="panel-head">
-          <div><h2 className="h2">{t("Every trade, state by state")}</h2><p>{t("Trainees for every 10 jobs in each state. Click a state's column to open it.")}</p></div>
+          <div><h2 className="h2">{t("Which trades have the right number of trainees?")}</h2><p>{t("Each box compares the trainees ready each year with the jobs coming in that state. Tap a state's name to open it.")}</p></div>
           <Download href={`/api/export/gaps.csv?state=all&sector=${sector}`}>{t("Download all states")}</Download>
+        </div>
+        <div className="plain-key">
+          <span><i style={{ background: STATUS[0].hex }} />{t("Too few trainees: jobs stay empty")}</span>
+          <span><i style={{ background: STATUS[2].hex }} />{t("About right")}</span>
+          <span><i style={{ background: STATUS[4].hex }} />{t("Too many trainees: people stay without work")}</span>
         </div>
         <div style={{ overflowX: "auto" }}>
           <table className="matrix compare">
-            <thead><tr><th />{national.states.map((s) => <th key={s.name}><button className="link" onClick={() => openState(s.name)}>{t(s.name)}</button></th>)}<th>{t("All pilot states")}</th></tr></thead>
+            <thead><tr><th />{national.states.map((s) => <th key={s.name}><button className="link" onClick={() => openState(s.name)}>{t(s.name)}</button></th>)}<th>{t("All states together")}</th></tr></thead>
             <tbody>
               {national.trades.map((tr, k) => {
                 if (!inField(k)) return null;
@@ -144,7 +151,16 @@ export default function India() {
                     <th className="dn" scope="row">{TRADE_ICONS[tr.icon]}{t(tr.name)}</th>
                     {[...cells, sum].map((c, i) => {
                       const r = c.trainees / c.jobs, st = statusOf(r), strong = st === 0 || st === 4;
-                      return <td key={i}><span className="cell num" style={{ background: strong ? STATUS[st].hex : STATUS[st].bg, color: strong ? "#FFFFFF" : STATUS[st].color }}>{perTen(r)}</span></td>;
+                      return (
+                        <td key={i}>
+                          <span className="cell verdict" style={{ background: strong ? STATUS[st].hex : STATUS[st].bg, color: strong ? "#FFFFFF" : STATUS[st].color }}>
+                            <b>{t(STATUS[st].short)}</b>
+                            <small className="num">{st <= 1 ? t("{count} jobs may go unfilled", { count: fmt(c.jobs - c.trainees) })
+                              : st >= 3 ? t("{count} trainees may not find work", { count: fmt(c.trainees - c.jobs) })
+                              : t("{jobs} jobs, {trainees} trainees", { jobs: fmt(c.jobs), trainees: fmt(c.trainees) })}</small>
+                          </span>
+                        </td>
+                      );
                     })}
                   </tr>
                 );
@@ -156,24 +172,32 @@ export default function India() {
 
       <section className="panel" data-reveal>
         <div className="panel-head">
-          <div><h2 className="h2">{t("The worst gaps in the country, ranked")}</h2><p>{t("Every district and trade in the pilot, worst first. Use this to set next year's training targets.")}</p></div>
+          <div><h2 className="h2">{t("Where the problem is biggest")}</h2><p>{t("Districts and trades across the pilot, biggest problem first. Use this list to set next year's training targets.")}</p></div>
           <div className="segment" role="group" aria-label={t("Which gaps to rank")}>
-            <button className={side === "short" ? "on" : ""} onClick={() => { setSide("short"); setShowAll(false); }}>{t("Too few trainees")}</button>
+            <button className={side === "short" ? "on" : ""} onClick={() => { setSide("short"); setShowAll(false); }}>{t("Need more trainees")}</button>
             <button className={side === "many" ? "on" : ""} onClick={() => { setSide("many"); setShowAll(false); }}>{t("Too many trainees")}</button>
           </div>
         </div>
         <ol className="rank">
-          {shown.map((p, i) => (
-            <li key={`${p.state}-${p.district}-${p.trade}`}>
-              <button onClick={() => openPair(p)}>
-                <span className="rank-no num">{i + 1}</span>
-                <TradeIcon icon={national.trades[p.trade].icon} status={p.status} />
-                <span className="rank-name"><b>{t(national.trades[p.trade].name)}</b><small>{t("{district}, {state}", { district: t(p.district), state: t(p.state) })}</small></span>
-                <span className="rank-ratio num" style={{ color: STATUS[p.status].color }}>{t("{n} per 10 jobs", { n: perTen(p.ratio) })}</span>
-                <span className="rank-gap num" style={{ color: side === "short" ? STATUS[0].color : STATUS[4].color }}>{fmt(Math.abs(p.jobs - p.trainees))}<small>{t(side === "short" ? "jobs unfilled" : "without a job")}</small></span>
-              </button>
-            </li>
-          ))}
+          {shown.map((p, i) => {
+            const gap = Math.abs(p.jobs - p.trainees);
+            const colour = side === "short" ? STATUS[0].hex : STATUS[4].hex;
+            const vars = { state: t(p.state), n: Math.round(p.ratio * 10) };
+            return (
+              <li key={`${p.state}-${p.district}-${p.trade}`}>
+                <button onClick={() => openPair(p)}>
+                  <span className="rank-no num">{i + 1}</span>
+                  <TradeIcon icon={national.trades[p.trade].icon} status={p.status} />
+                  <span className="rank-name">
+                    <b>{t("{trade} in {district}", { trade: t(national.trades[p.trade].name), district: t(p.district) })}</b>
+                    <small>{side === "short" ? t("{state}: only {n} trainees for every 10 jobs", vars) : t("{state}: {n} trainees for every 10 jobs", vars)}</small>
+                  </span>
+                  <span className="rank-bar" aria-hidden="true"><i style={{ width: `${(gap / topGap) * 100}%`, background: colour }} /></span>
+                  <span className="rank-gap num" style={{ color: colour }}>{fmt(gap)}<small>{t(side === "short" ? "more trainees needed" : "more trainees than jobs")}</small></span>
+                </button>
+              </li>
+            );
+          })}
         </ol>
         {ranked.length > 10 ? <div style={{ marginTop: 12 }}><Button kind="quiet" icon={showAll ? "up" : "down"} onClick={() => setShowAll(!showAll)}>{showAll ? t("Show fewer") : t("Show all {count}", { count: ranked.length })}</Button></div> : null}
       </section>

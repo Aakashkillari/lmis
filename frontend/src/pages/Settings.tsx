@@ -3,7 +3,7 @@ import { PILOT_STATES, homeFor, scopeOf, seesLines, startPick, useAuth, usePlace
 import { SECTORS, useData, useNational, usePick, type SectorKey } from "../data";
 import { LANGS, msg, useT } from "../i18n";
 import { usePrefs, type Prefs } from "../prefs";
-import { Glyph } from "../ui/Icons";
+import { Decal, Glyph } from "../ui/Icons";
 import { Button } from "../ui/parts";
 
 type Switch = "smooth" | "motion" | "cursor" | "large";
@@ -41,6 +41,7 @@ export default function Settings() {
 
       <div className="settings">
         <section className="panel" data-reveal>
+          <Decal name="users" />
           <div className="who-card">
             <span className="avatar xl">{user.initials}</span>
             <div><h2 className="h2">{t(user.name)}</h2><p>{t(user.title)}</p></div>
