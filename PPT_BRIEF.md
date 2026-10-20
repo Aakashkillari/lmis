@@ -103,19 +103,19 @@ Pilot scope: 4 States (Tamil Nadu, Karnataka, Delhi, Uttar Pradesh), 20 district
 
 | Indicator | Value |
 |---|---|
-| Forecast demand, next 12 months | 85,767 openings |
-| Certified supply per year | 82,041 candidates |
-| Pairs in Oversupply | 20 of 200 |
-| Pairs in Shortage | 38 of 200 |
-| Early warnings (next 6 months) | 21 |
-| Forecast accuracy (backtest, last 6 months held out) | 11.0% median MAPE, against 15.2% for a naive average |
+| Forecast demand, next 12 months | 85,014 openings |
+| Certified supply per year | 81,404 candidates |
+| Pairs in Oversupply | 22 of 200 |
+| Pairs in Shortage | 26 of 200 |
+| Early warnings (next 6 months) | 10 |
+| Forecast accuracy (backtest, last 6 months held out) | 10.1% median MAPE, against 14.5% for a naive average |
 
 What the system found:
 
-- **EV Service Technician:** acute shortage in Bengaluru Urban, Coimbatore and Krishnagiri (gap ratio around 0.4), with demand growing about 33% a year.
-- **Solar PV Installer:** shortage across Uttar Pradesh and Delhi districts.
-- **Electrician (Domestic):** oversupply in Madurai (ratio 2.3) and Kanpur Nagar (ratio 2.1).
-- **Two-Wheeler Service Technician:** oversupply in several districts, with demand declining.
+- **EV Service Technician and Solar PV Installer:** acute shortage in Bengaluru Urban, Chennai, Coimbatore and Gautam Buddha Nagar (gap ratio around 0.4), with EV demand growing about 32% a year.
+- **Electrician (Domestic):** oversupply in East and North West Delhi, Kanpur Nagar, Lucknow and Varanasi (ratio 1.7 to 1.9).
+- **Two-Wheeler Service Technician:** oversupply in several UP and Delhi districts (ratio up to 2.4), with demand declining.
+- **Automotive Painter and Auto Body Repair:** balanced almost everywhere, Watch (falling) in Tumakuru and Dharwad.
 
 Screenshot: the "Top 10 short" table, or the Early warnings page.
 
@@ -132,11 +132,13 @@ Screenshot: the "Top 10 short" table, or the Early warnings page.
 
 | Layer | Technology |
 |---|---|
-| Dashboard | Python, Streamlit |
+| Dashboard | Python, Streamlit (9 screens) |
 | Data processing | pandas, numpy |
-| Forecasting | statsmodels Holt-Winters |
+| Forecasting | statsmodels Holt-Winters, 80% band, backtest MAPE |
+| Title matching | rapidfuzz fuzzy match with confidence 0 to 100 |
+| Config | config.yaml for weights and thresholds |
 | Charts | Plotly |
-| API | FastAPI (`/api/gaps`, `/api/warnings`, `/api/meta`) |
+| API | FastAPI (`/api/gaps`, `/api/health`) |
 | Languages | English and Hindi, from one translations file |
 
 Feasibility points:
@@ -171,21 +173,21 @@ Run `streamlit run app.py` and take full-width screenshots of:
 1. Overview: KPI row and the top-10 tables
 2. Drill-down with the State set to Tamil Nadu
 3. Trade forecast for Coimbatore, EV Service Technician (the chart)
-4. Early warnings table
-5. What-if simulator for Madurai, Electrician (Domestic), with seats cut by about 500
-6. Seat reallocation table
-7. Job title normaliser with the sample posting
-8. Methodology: the weights and backtest section
-9. Any page with the language switched to Hindi
+4. Early warning table
+5. Reallocation and what-if for Uttar Pradesh (Kanpur Nagar, Electrician (Domestic))
+6. Emerging trades radar
+7. Job title normaliser with "Electrition"
+8. Data and refresh, after uploading a sample month
+9. Methodology: the weights and backtest section
+10. Any page with the language switched to Hindi
 
 ## Two-minute demo script (also useful for the video)
 
-1. Overview: "Here are 85,767 forecast openings against 82,041 certified candidates, but the totals hide 38 shortage pairs and 20 oversupply pairs."
-2. Drill-down to Tamil Nadu, then Coimbatore: EV is in shortage.
-3. Trade forecast for EV in Coimbatore: rising demand, a flat supply line, and the band.
+1. Overview: "Here are 85,014 forecast openings against 81,404 certified candidates, but the totals hide 26 shortage pairs and 22 oversupply pairs."
+2. Drill-down to Tamil Nadu, then Coimbatore. The district x trade matrix shows EV and Solar in shortage.
+3. Forecast for EV in Coimbatore: rising demand, a flat supply line, the 80% band and the backtest MAPE.
 4. Early warnings: "These pairs will tip over within 6 months, with the month shown."
-5. What-if: cut Electrician seats in Madurai and watch the status move from Oversupply to Balanced.
-6. Reallocation: the system suggests moving those seats to EV and Solar in the same state.
-7. Normaliser: paste a messy posting, get the NCO code.
-8. Export: download the CSV, show the API JSON.
-9. Switch to Hindi.
+5. Reallocation and what-if (Uttar Pradesh): the system suggests moving Electrician and Two-Wheeler seats to Solar and EV, with total seats unchanged. Cut Kanpur Nagar Electrician seats in the simulator and watch the status and suggestions update.
+6. Normaliser: type "Electrition", get Electrician (Domestic), NCO 7411.0100, with a confidence of 82.
+7. Data and refresh: upload next month's sample CSV, the pipeline re-runs and the refresh date changes. Show the API JSON.
+8. Switch to Hindi.

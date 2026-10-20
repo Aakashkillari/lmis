@@ -1,37 +1,29 @@
+from pathlib import Path
+
 import streamlit as st
 
-from lmis import ui
+from pramaan import theme, web
+from pramaan.core import choose, data, lang, t
 
-st.set_page_config(page_title="LMIS | MSDE", layout="wide", initial_sidebar_state="expanded")
+ROOT = Path(__file__).resolve().parent
+MARK = str(ROOT / "assets" / "pramaan_mark.svg")
+
+st.set_page_config(page_title="Pramaan · Skill Demand Intelligence", page_icon=MARK, layout="wide", initial_sidebar_state="collapsed")
+theme.apply()
 
 if "lang" not in st.session_state:
     st.session_state["lang"] = "en"
 
-ui.apply_style()
-
-with st.sidebar:
-    choice = st.radio("Language / भाषा", ["English", "हिन्दी"], index=0 if ui.lang() == "en" else 1, horizontal=True)
-    st.session_state["lang"] = "en" if choice == "English" else "hi"
-
-PAGES = [
-    ("views/overview.py", "nav_overview", True),
-    ("views/drilldown.py", "nav_drilldown", False),
-    ("views/trade_forecast.py", "nav_forecast", False),
-    ("views/warnings.py", "nav_warnings", False),
-    ("views/whatif.py", "nav_whatif", False),
-    ("views/reallocation.py", "nav_reallocation", False),
-    ("views/radar.py", "nav_radar", False),
-    ("views/normaliser.py", "nav_normaliser", False),
-    ("views/methodology.py", "nav_methodology", False),
-    ("views/export.py", "nav_export", False),
+pages = [
+    st.Page(web.PAGES[0], title=t("nav_dashboard"), default=True),
+    st.Page(web.PAGES[1], title=t("nav_explore")),
+    st.Page(web.PAGES[2], title=t("nav_plan")),
+    st.Page(web.PAGES[3], title=t("nav_assistant")),
+    st.Page(web.PAGES[4], title=t("nav_about")),
 ]
+current = st.navigation(pages, position="hidden")
+active = next((i for i, page in enumerate(pages) if page.url_path == current.url_path), 0)
 
-pages = [st.Page(path, title=ui.t(key), default=default) for path, key, default in PAGES]
-current = st.navigation(pages, position="sidebar")
-
-with st.sidebar:
-    st.caption(ui.t("sidebar_note"))
-
-ui.header()
-ui.data()
+web.header(active, lang(), choose)
+data()
 current.run()
