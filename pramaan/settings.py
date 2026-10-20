@@ -63,6 +63,39 @@ SUPPLY_STORIES = [
     ("Auto Body Repair Technician", ["Tiruppur"], 0.74),
 ]
 
+KA_DISTRICTS = {
+    "Bengaluru Urban": {"x": 77.59, "y": 12.97, "size": 1.8},
+    "Mysuru": {"x": 76.64, "y": 12.30, "size": 1.0},
+    "Belagavi": {"x": 74.50, "y": 15.85, "size": 1.0},
+    "Dharwad": {"x": 75.01, "y": 15.46, "size": 0.9},
+    "Dakshina Kannada": {"x": 74.86, "y": 12.91, "size": 0.9},
+    "Kalaburagi": {"x": 76.83, "y": 17.33, "size": 0.8},
+    "Tumakuru": {"x": 77.10, "y": 13.34, "size": 0.9},
+    "Ballari": {"x": 76.92, "y": 15.14, "size": 0.8},
+}
+
+KA_GROWTH_BOOST = [
+    ("EV Service Technician", ["Bengaluru Urban", "Mysuru", "Dharwad"], 0.16),
+    ("Solar PV Installer", ["Tumakuru", "Kalaburagi", "Ballari"], 0.14),
+]
+
+KA_SUPPLY_STORIES = [
+    ("EV Service Technician", ["Bengaluru Urban", "Dharwad"], 0.36),
+    ("EV Service Technician", None, 0.55),
+    ("Solar PV Installer", ["Tumakuru", "Kalaburagi"], 0.40),
+    ("Solar PV Installer", None, 0.58),
+    ("Electrician (Domestic)", ["Belagavi", "Kalaburagi"], 1.9),
+    ("Two-Wheeler Service Technician", ["Mysuru", "Ballari"], 1.8),
+    ("Two-Wheeler Service Technician", None, 1.45),
+    ("Lineman (LT)", ["Dakshina Kannada"], 0.72),
+    ("Four-Wheeler Service Technician", ["Bengaluru Urban"], 1.3),
+]
+
+STATES = {
+    "Tamil Nadu": {"seed": SEED, "districts": DISTRICTS, "growth_boost": GROWTH_BOOST, "supply_stories": SUPPLY_STORIES, "geo": "tn_districts.json"},
+    "Karnataka": {"seed": SEED + 1, "districts": KA_DISTRICTS, "growth_boost": KA_GROWTH_BOOST, "supply_stories": KA_SUPPLY_STORIES, "geo": "ka_districts.json"},
+}
+
 REALLOCATION = {"donor_keep": 1.1, "receiver_target": 1.0, "block": 10}
 
 ALIASES = {

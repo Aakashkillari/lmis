@@ -8,7 +8,7 @@ from pramaan import settings as s
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_BASE_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b"
-LANGUAGE_NAMES = {"en": "English", "ta": "Tamil", "hi": "Hindi"}
+LANGUAGE_NAMES = {"en": "English", "ta": "Tamil", "hi": "Hindi", "kn": "Kannada"}
 
 DISTRICT_WORDS = {
     "chennai": "Chennai", "madras": "Chennai", "krishnagiri": "Krishnagiri", "hosur": "Krishnagiri", "salem": "Salem",
@@ -18,6 +18,13 @@ DISTRICT_WORDS = {
     "சென்னை": "Chennai", "கிருஷ்ணகிரி": "Krishnagiri", "ஓசூர்": "Krishnagiri", "சேலம்": "Salem", "கோயம்புத்தூர்": "Coimbatore", "கோவை": "Coimbatore",
     "திருப்பூர்": "Tiruppur", "திருச்சி": "Tiruchirappalli", "மதுரை": "Madurai", "திருநெல்வேலி": "Tirunelveli", "நெல்லை": "Tirunelveli",
     "चेन्नई": "Chennai", "कोयंबटूर": "Coimbatore", "मदुरै": "Madurai", "सेलम": "Salem",
+    "bengaluru": "Bengaluru Urban", "bangalore": "Bengaluru Urban", "mysuru": "Mysuru", "mysore": "Mysuru",
+    "belagavi": "Belagavi", "belgaum": "Belagavi", "dharwad": "Dharwad", "hubballi": "Dharwad", "hubli": "Dharwad",
+    "dakshina kannada": "Dakshina Kannada", "mangaluru": "Dakshina Kannada", "mangalore": "Dakshina Kannada",
+    "kalaburagi": "Kalaburagi", "gulbarga": "Kalaburagi", "tumakuru": "Tumakuru", "tumkur": "Tumakuru", "ballari": "Ballari", "bellary": "Ballari",
+    "ಬೆಂಗಳೂರು": "Bengaluru Urban", "ಮೈಸೂರು": "Mysuru", "ಬೆಳಗಾವಿ": "Belagavi", "ಧಾರವಾಡ": "Dharwad", "ಹುಬ್ಬಳ್ಳಿ": "Dharwad",
+    "ದಕ್ಷಿಣ ಕನ್ನಡ": "Dakshina Kannada", "ಮಂಗಳೂರು": "Dakshina Kannada", "ಕಲಬುರಗಿ": "Kalaburagi", "ತುಮಕೂರು": "Tumakuru", "ಬಳ್ಳಾರಿ": "Ballari",
+    "बेंगलुरु": "Bengaluru Urban", "मैसूरु": "Mysuru", "बेलगावी": "Belagavi",
 }
 
 TRADE_WORDS = [
@@ -112,6 +119,24 @@ def balance(demand, supply):
     return f"surplus of {number(-shortfall)}"
 
 
+PLAIN_TRADE = {
+    "Electrician (Domestic)": "Electrician", "Assistant Electrician": "Electrician helper", "Solar PV Installer": "Solar panel installer",
+    "Lineman (LT)": "Power line worker", "Electrical Panel Assembler": "Panel assembler", "Two-Wheeler Service Technician": "Bike mechanic",
+    "Four-Wheeler Service Technician": "Car mechanic", "EV Service Technician": "EV mechanic", "Auto Body Repair Technician": "Car body repairer",
+    "Automotive Painter": "Car painter",
+}
+PLAIN_STATUS = {"Shortage": "not enough trainees", "Watch (falling)": "running short", "Balanced": "well matched", "Watch (rising)": "a few too many", "Oversupply": "too many trainees"}
+PLAIN_SECTOR = {"Electrical and Power": "Electrical and power", "Automotive": "Vehicles"}
+
+
+def plain_trade(name):
+    return PLAIN_TRADE.get(name, name)
+
+
+def per_ten(ratio):
+    return f"{ratio * 10:.1f} trainees per 10 jobs"
+
+
 def status_of(ratio):
     for status, low, high in s.BANDS:
         if (low is None or ratio >= low) and (high is None or ratio < high):
@@ -120,8 +145,8 @@ def status_of(ratio):
 
 
 def describe(row):
-    return (f"{row.trade}: {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, "
-            f"ratio {row.ratio:.2f}, {row.status}, demand {row.growth:+.0%} vs last year, {number(row.seats)} seats")
+    return (f"{plain_trade(row.trade)}: {number(row.demand)} jobs next year, {number(row.supply)} trainees each year, {balance(row.demand, row.supply)}, "
+            f"{per_ten(row.ratio)}, {PLAIN_STATUS[row.status]}, jobs {row.growth:+.0%} vs last year, {number(row.seats)} training seats")
 
 
 def about(data):
@@ -129,7 +154,7 @@ def about(data):
     weights = ", ".join(f"{name} {weight:.0%}" for name, weight in [("job portal postings", s.WEIGHTS["portal"]), ("NCS vacancies", s.WEIGHTS["ncs"]), ("industry hiring outlook", s.WEIGHTS["industry"]), ("e-Shram registrations", s.WEIGHTS["eshram"])])
     return "\n".join([
         "ABOUT PRAMAAN",
-        f"- Pramaan is a skill demand intelligence platform for {s.STATE}. It covers {len(s.DISTRICTS)} districts ({', '.join(s.DISTRICTS)}), {len(s.TRADES)} trades in 2 sectors (Electrical and Power; Automotive). Data runs through {data['updated']}.",
+        f"- Pramaan is a skill demand intelligence platform. This conversation is about {data.get('state', s.STATE)}, which has {len(data.get('districts', s.DISTRICTS))} pilot districts ({', '.join(data.get('districts', s.DISTRICTS))}), {len(s.TRADES)} trades in 2 sectors (Electrical and Power; Automotive). Data runs through {data['updated']}.",
         "- Pages: Dashboard (district map, opportunity grid, top shortages and surpluses), Explore a trade (forecast chart and live seat simulator), Plan seats (seat reallocation, emerging trades, early warnings), Ask Pramaan (this assistant), How it works.",
         f"- How demand is forecast: (1) collect four monthly signals: {weights}. (2) Clean: messy job titles are matched to official NCO codes. (3) Combine: each signal is scaled to a z-score and blended with those weights into one demand index, then converted to expected job openings using NCS and portal counts. "
         f"(4) Forecast: a Holt-Winters seasonal model projects openings for the next 12 months with an {int(s.BAND_LEVEL * 100)}% likely range. (5) Compare: openings are compared with certified trainees and gaps are ranked.",
@@ -147,7 +172,7 @@ def facts(data, moves):
     lines = ["STATE TOTALS"]
     lines.append(f"- All trades: {number(gaps['demand'].sum())} jobs expected in the next 12 months, {number(gaps['supply'].sum())} trainees per year, {balance(gaps['demand'].sum(), gaps['supply'].sum())}.")
     for row in sector_table(gaps).itertuples():
-        lines.append(f"- {row.sector}: {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, ratio {row.ratio:.2f}, {status_of(row.ratio)}.")
+        lines.append(f"- {PLAIN_SECTOR[row.sector]}: {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, {per_ten(row.ratio)}, {PLAIN_STATUS[status_of(row.ratio)]}.")
     shortfall = gaps.assign(short=gaps["demand"] - gaps["supply"])
     lines += ["", "BIGGEST SHORTAGES IN THE STATE (most unfilled jobs first)"]
     for row in shortfall.sort_values("short", ascending=False).head(8).itertuples():
@@ -160,22 +185,22 @@ def facts(data, moves):
     lines += ["", "TRADES ACROSS THE STATE (fastest growing first)"]
     for row in trades.sort_values("growth", ascending=False).itertuples():
         ratio = row.supply / row.demand
-        lines.append(f"- {row.trade} ({row.sector}): {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, ratio {ratio:.2f}, {status_of(ratio)}, demand {row.growth:+.0%} vs last year")
-    for district in s.DISTRICTS:
+        lines.append(f"- {plain_trade(row.trade)} ({PLAIN_SECTOR[row.sector]}): {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, {per_ten(ratio)}, {PLAIN_STATUS[status_of(ratio)]}, jobs {row.growth:+.0%} vs last year")
+    for district in data.get("districts", s.DISTRICTS):
         frame = shortfall[shortfall["district"] == district].sort_values("short", ascending=False)
         lines += ["", f"DISTRICT: {district}"]
         lines.append(f"- Total: {number(frame['demand'].sum())} jobs, {number(frame['supply'].sum())} trainees, {balance(frame['demand'].sum(), frame['supply'].sum())}.")
         for row in sector_table(gaps, district).itertuples():
-            lines.append(f"- Sector {row.sector}: {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, ratio {row.ratio:.2f}, {status_of(row.ratio)}.")
+            lines.append(f"- Field {PLAIN_SECTOR[row.sector]}: {number(row.demand)} jobs, {number(row.supply)} trainees, {balance(row.demand, row.supply)}, {per_ten(row.ratio)}, {PLAIN_STATUS[status_of(row.ratio)]}.")
         lines.append("- Trades, most short first:")
         for row in frame.itertuples():
             lines.append(f"  - {describe(row)}")
     lines += ["", "EARLY WARNINGS (next 6 months)"]
     for row in data["warnings"].itertuples():
-        lines.append(f"- {row.trade} in {row.district}: {row.current_status} now, becomes {row.projected_status} in {row.month.strftime('%B %Y')}.")
+        lines.append(f"- {plain_trade(row.trade)} in {row.district}: {PLAIN_STATUS[row.current_status]} now, becomes {PLAIN_STATUS[row.projected_status]} in {row.month.strftime('%B %Y')}.")
     lines += ["", "SUGGESTED SEAT MOVES (total seats unchanged)"]
     for row in moves.itertuples():
-        lines.append(f"- Move {row.seats} seats from {row.from_trade} in {row.from_district} to {row.to_trade} in {row.to_district}.")
+        lines.append(f"- Move {row.seats} seats from {plain_trade(row.from_trade)} in {row.from_district} to {plain_trade(row.to_trade)} in {row.to_district}.")
     return "\n".join(lines)
 
 
@@ -185,7 +210,7 @@ def context(data, moves):
 
 def system_prompt(data, moves, language):
     return (
-        "You are Pramaan Assistant, a friendly expert inside Pramaan, a skill demand intelligence platform. You help Tamil Nadu skill planners "
+        "You are Pramaan Assistant, a friendly expert inside Pramaan, a skill demand intelligence platform. You help " + data.get("state", s.STATE) + " skill planners "
         "decide how many training seats each trade should get in each district.\n\n"
         "How to answer:\n"
         "- Answer exactly the question asked, like a knowledgeable colleague. Do not add facts the question did not ask for.\n"
@@ -198,16 +223,30 @@ def system_prompt(data, moves, language):
         "- Use only the facts below. Copy numbers exactly as written; do not recompute them. Use the status names exactly as given. "
         "If the facts do not cover something, say so in one sentence and suggest what Pramaan can answer instead.\n"
         "- 'Short by N' means N more jobs than trainees. 'Surplus of N' means N more trainees than jobs.\n"
+        "- Speak like you are explaining to someone with no background. Never use jargon such as ratio, oversupply, supply, demand, NSQF or NCO. "
+        "Say 'jobs coming next year', 'trainees ready each year', 'X trainees for every 10 jobs' (ratio x 10, one decimal), 'not enough trainees', 'running short', 'well matched', 'a few too many', 'too many trainees'. "
+        "Use everyday trade names: Electrician, Electrician helper, Solar panel installer, Power line worker, Panel assembler, Bike mechanic, Car mechanic, EV mechanic, Car body repairer, Car painter.\n"
         f"- Write in {LANGUAGE_NAMES.get(language, 'English')}. Use plain language that a district officer understands. Bold the key number or trade in each answer.\n\n"
         + context(data, moves)
     )
 
 
-def stream_answer(question, history, data, moves, language):
+def asker_note(user):
+    if not user:
+        return ""
+    scope = user.get("scope") or {}
+    focus = scope.get("district") or ("vehicle trades" if scope.get("sector") == "auto" else "electrical and power trades" if scope.get("sector") == "power" else "the whole state")
+    return (
+        f"\n\nThe person asking is the {user['name']} ({user['title']}). {user['summary']} "
+        f"When the question does not name a district or field, answer for {focus} first, then add one line on the rest of the state if it helps."
+    )
+
+
+def stream_answer(question, history, data, moves, language, user=None):
     from openai import OpenAI
 
     client = OpenAI(base_url=os.getenv("PRAMAAN_LLM_BASE_URL", DEFAULT_BASE_URL), api_key=llm_key(), timeout=75, max_retries=0)
-    messages = [{"role": "system", "content": system_prompt(data, moves, language)}]
+    messages = [{"role": "system", "content": system_prompt(data, moves, language) + asker_note(user)}]
     for turn in history[-6:]:
         messages.append({"role": turn["role"], "content": turn["content"]})
     messages.append({"role": "user", "content": question})
@@ -232,6 +271,7 @@ def stream_answer(question, history, data, moves, language):
 def fallback_answer(question, data, t):
     gaps = data["gaps"]
     found = entities(question)
+    found["districts"] = [d for d in found["districts"] if d in set(gaps["district"])]
     if found["districts"]:
         district = found["districts"][0]
         sectors = sector_table(gaps, district)
@@ -251,7 +291,7 @@ def fallback_answer(question, data, t):
     sectors = sector_table(gaps)
     top = sectors.iloc[0]
     frame = gaps.assign(need=lambda f: f["demand"] - f["supply"]).sort_values("need", ascending=False)
-    lines = [t("fb_state", sector=t(f"sector_{top.sector}"), demand=number(top.demand), supply=number(top.supply))]
+    lines = [t("fb_state", state=data.get("state", s.STATE), sector=t(f"sector_{top.sector}"), demand=number(top.demand), supply=number(top.supply))]
     for row in frame.head(3).itertuples():
         lines.append(t("fb_pair_line", trade=row.trade, district=row.district, demand=number(row.demand), supply=number(row.supply)))
     return "\n".join(lines)

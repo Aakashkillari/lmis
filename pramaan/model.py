@@ -38,17 +38,18 @@ def rule_value(rules, district, trade, default):
     return default
 
 
-def generate():
-    rng = np.random.default_rng(s.SEED)
+def generate(state=s.STATE):
+    config = s.STATES[state]
+    rng = np.random.default_rng(config["seed"])
     months = history_months()
     count = len(months)
     steps = count + s.FORECAST_MONTHS
     month_numbers = ((months[0].month - 1 + np.arange(steps)) % 12) + 1
     signals, seats = [], []
-    for district, place in s.DISTRICTS.items():
+    for district, place in config["districts"].items():
         for spec in s.TRADES:
             trade = spec["trade"]
-            growth = spec["growth"] + rule_value(s.GROWTH_BOOST, district, trade, 0.0) + rng.normal(0, 0.02)
+            growth = spec["growth"] + rule_value(config["growth_boost"], district, trade, 0.0) + rng.normal(0, 0.02)
             level = spec["base"] * place["size"] * rng.uniform(0.85, 1.15)
             path = level * (1 + growth) ** (np.arange(steps) / 12) * season(month_numbers, spec["sector"])
             actual = path[:count] * rng.lognormal(0, 0.06, count)
@@ -65,7 +66,7 @@ def generate():
             }))
             completion = rng.uniform(0.78, 0.92)
             certification = rng.uniform(0.66, 0.86)
-            ratio = rule_value(s.SUPPLY_STORIES, district, trade, None)
+            ratio = rule_value(config["supply_stories"], district, trade, None)
             ratio = ratio * rng.uniform(0.95, 1.05) if ratio else float(np.clip(rng.normal(1.0, 0.1), 0.85, 1.15))
             total = path[count:].sum() * ratio / (completion * certification)
             seats.append({
@@ -266,13 +267,13 @@ def match_title(text, top=3):
     return [{"trade": trade, "nco": info[trade]["nco"], "qp": info[trade]["qp"], "matched": alias, "confidence": round(key[0])} for trade, (key, alias) in ranked]
 
 
-def fingerprint():
-    text = repr([s.SEED, s.HISTORY_MONTHS, s.HISTORY_END, s.FORECAST_MONTHS, s.DISTRICTS, s.TRADES, s.WEIGHTS, s.BANDS, s.GROWTH_BOOST, s.SUPPLY_STORIES, s.BAND_LEVEL])
+def fingerprint(state=s.STATE):
+    text = repr([state, s.STATES[state], s.HISTORY_MONTHS, s.HISTORY_END, s.FORECAST_MONTHS, s.TRADES, s.WEIGHTS, s.BANDS, s.BAND_LEVEL])
     return hashlib.md5(text.encode()).hexdigest()[:12]
 
 
-def compute():
-    signals, seats = generate()
+def compute(state=s.STATE):
+    signals, seats = generate(state)
     index = demand_index(signals).merge(trade_info()[["trade", "short", "sector"]], on="trade")
     forecasts, backtest = forecast(index)
     gaps = gap_table(seats, index, forecasts)
@@ -283,15 +284,17 @@ def compute():
         "gaps": gaps,
         "warnings": early_warnings(gaps, index, forecasts),
         "updated": str(index["month"].max().strftime("%b %Y")),
+        "state": state,
+        "districts": list(s.STATES[state]["districts"]),
     }
 
 
-def build():
-    path = CACHE / f"pramaan_{fingerprint()}.pkl"
+def build(state=s.STATE):
+    path = CACHE / f"pramaan_{fingerprint(state)}.pkl"
     if path.exists():
         with path.open("rb") as handle:
             return pickle.load(handle)
-    result = compute()
+    result = compute(state)
     CACHE.mkdir(exist_ok=True)
     with path.open("wb") as handle:
         pickle.dump(result, handle)
